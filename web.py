@@ -84,7 +84,8 @@ def main():
                         quote_opened = False
                         print('"', end="")
                     else:
-                        print(char, end="")
+                        if char!= '>':
+                            print(char, end="")
                     i += 1
                     continue
 
@@ -94,7 +95,8 @@ def main():
                         if i == 0 or not line[i-1].isspace():
                             print(" ", end="")
                     else:
-                        print(char, end="")
+                        if char!= '>':
+                            print(char, end="")
 
             i += 1
 
