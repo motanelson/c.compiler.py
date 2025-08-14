@@ -1,44 +1,27 @@
-;nasm -f elf64 -o gccx.o gccx.asm
-;ld -dynamic-linker /lib64/ld-linux-x86-64.so.2    -o gccx /usr/lib/x86_64-linux-gnu/crt1.o    /usr/lib/x86_64-linux-gnu/crti.o    gccx.o    -lc    /usr/lib/x86_64-linux-gnu/crtn.o
-;gcc --version
-;./gccx
 [BITS 64]
-align 16
-
 section .data
-
-    
-    value0 dq 3.1415927, 0 ,0,0,0,0
-    value1 dq 100.00, 0 ,0,0,0,0
-    value2 dq 0.00, 0 ,0,0,0,0
-    stg db 10,27,'[43;30m%lld',10,10,10,0
-    stacks2:
-    times 16384 db 0
-    stacks:
-    times 16384 db 0
-section .bss
-     resq 1024
+    value512 dq 0x1122334455667788, 0x99AABBCCDDEEFF00,0x1122334455667788, 0x99AABBCCDDEEFF00,0x1122334455667788, 0x99AABBCCDDEEFF00,0x1122334455667788, 0x99AABBCCDDEEFF00; 512-bit value
 
 section .text
-    extern printf
-    extern exit
-    global main
+    global _start
 
-main:
-    mov rsp,stacks
-    movq xmm0,[value0]
-    movq xmm1,[value1]
-    mulpd xmm0,xmm1
-    movq [value2],xmm0
-    fld qword [value2]       ; Load num1 onto the FPU stack
-    fistp qword [value2]
-    mov rsi,[value2]    
-    mov rax,0
-    mov rdi,stg
-    call printf
+_start:
+    ; Reservar espaço na pilha
+    sub rsp, 64
+
+    ; Carregar o valor de 512 bits para zmm1
+    vmovaps zmm1, [value512]
+
+    ; Fazer "push" do valor 512 bits (armazenar na pilha)
+    vmovaps [rsp], zmm1
+
+    ; Fazer "pop" do valor 512 bits (carregar de volta para zmm0)
+    vmovaps zmm0, [rsp]
+
+    ; Liberar espaço da pilha
+    add rsp, 64
 
     ; Encerrar (em Linux, syscall exit)
-    call exit
-    ret
-section .note.GNU-stack
-    times 16384 db 0
+    mov eax, 60     ; syscall: exit
+    xor edi, edi    ; status 0
+    syscall
