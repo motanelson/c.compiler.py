@@ -28,7 +28,7 @@ main:
     mov rsp,stacks
     movq xmm0,[value0]
     movq xmm1,[value1]
-    mulss xmm0,xmm1
+    mulpd xmm0,xmm1
     movq [value2],xmm0
     fld qword [value2]       ; Load num1 onto the FPU stack
     fistp qword [value2]
