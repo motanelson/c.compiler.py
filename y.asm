@@ -1,27 +1,42 @@
+;nasm -f elf64 -o gccx.o gccx.asm
+;ld -dynamic-linker /lib64/ld-linux-x86-64.so.2    -o gccx /usr/lib/x86_64-linux-gnu/crt1.o    /usr/lib/x86_64-linux-gnu/crti.o    gccx.o    -lc    /usr/lib/x86_64-linux-gnu/crtn.o
+;gcc --version
+;./gccx
 [BITS 64]
+align 16
+
 section .data
-    value256 dq 0x1122334455667788, 0x99AABBCCDDEEFF00,0x1122334455667788, 0x99AABBCCDDEEFF00; 256-bit value
+
+    
+    value0 dq 16, 0 ,0,0,0,0
+    value1 dq 16, 0 ,0,0,0,0
+    value2 dq 0, 0 ,0,0,0,0
+    stg db 10,27,'[43;30m%lld',10,10,10,0
+    stacks2:
+    times 16384 db 0
+    stacks:
+    times 16384 db 0
+section .bss
+     resq 1024
 
 section .text
-    global _start
+    extern printf
+    extern exit
+    global main
 
-_start:
-    ; Reservar espaço na pilha
-    sub rsp, 32
-
-    ; Carregar o valor de 256 bits para ymm1
-    vmovaps ymm1, [value256]
-
-    ; Fazer "push" do valor 256 bits (armazenar na pilha)
-    vmovaps [rsp], ymm1
-
-    ; Fazer "pop" do valor 256 bits (carregar de volta para ymm0)
-    vmovaps ymm0, [rsp]
-
-    ; Liberar espaço da pilha
-    add rsp, 32
+main:
+    mov rsp,stacks
+    
+    mov rax,[value0]
+    mov rbx,[value1]
+    add rax,rbx
+    mov rsi,rax    
+    mov rax,0
+    mov rdi,stg
+    call printf
 
     ; Encerrar (em Linux, syscall exit)
-    mov eax, 60     ; syscall: exit
-    xor edi, edi    ; status 0
-    syscall
+    call exit
+    ret
+section .note.GNU-stack
+    times 16384 db 0
