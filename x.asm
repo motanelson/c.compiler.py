@@ -1,27 +1,42 @@
+;nasm -f elf64 -o gccx.o gccx.asm
+;ld -dynamic-linker /lib64/ld-linux-x86-64.so.2    -o gccx /usr/lib/x86_64-linux-gnu/crt1.o    /usr/lib/x86_64-linux-gnu/crti.o    gccx.o    -lc    /usr/lib/x86_64-linux-gnu/crtn.o
+;gcc --version
+;./gccx
 [BITS 64]
+align 16
+
 section .data
-    value128 dq 0x1122334455667788, 0x99AABBCCDDEEFF00 ; 128-bit value
+
+    
+    value0 dq 3.1415927, 0 ,0,0,0,0
+    value1 dq 100.00, 0 ,0,0,0,0
+    value2 dq 0.00, 0 ,0,0,0,0
+    stg db 10,27,'[43;30m%lld',10,10,10,0
+    stacks2:
+    times 16384 db 0
+    stacks:
+    times 16384 db 0
+section .bss
+     resq 1024
 
 section .text
-    global _start
+    extern printf
+    extern exit
+    global main
 
-_start:
-    ; Reservar espaço na pilha
-    sub rsp, 16
-
-    ; Carregar o valor de 128 bits para xmm1
-    movaps xmm1, [value128]
-
-    ; Fazer "push" do valor 128 bits (armazenar na pilha)
-    movaps [rsp], xmm1
-
-    ; Fazer "pop" do valor 128 bits (carregar de volta para xmm0)
-    movaps xmm0, [rsp]
-
-    ; Liberar espaço da pilha
-    add rsp, 16
+main:
+    mov rsp,stacks
+    
+    fld qword [value0]       ; Load num1 onto the FPU stack
+    fmul qword [value1]      ; Add num2 to the value on the FPU stack
+    fistp qword [value2]
+    mov rsi,[value2]    
+    mov rax,0
+    mov rdi,stg
+    call printf
 
     ; Encerrar (em Linux, syscall exit)
-    mov eax, 60     ; syscall: exit
-    xor edi, edi    ; status 0
-    syscall
+    call exit
+    ret
+section .note.GNU-stack
+    times 16384 db 0
