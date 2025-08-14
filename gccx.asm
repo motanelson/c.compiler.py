@@ -3,15 +3,22 @@
 ;gcc --version
 ;./gccx
 [BITS 64]
-section .bss
-     resq 1024
+align 16
+
 section .data
+
+    
+    value0 dq 10000, 0 ,0,0,0,0
+    value1 dq 11, 0 ,0,0,0,0
+
+    stg db 10,27,'[43;30m%lld',10,10,10,0
+    stacks2:
     times 16384 db 0
     stacks:
     times 16384 db 0
+section .bss
+     resq 1024
 
-    value128 dq 65, 0 ,0,0,0,0; 128-bit value
-    stg db 10,27,'[43;30m%ld',10,10,10,0
 section .text
     extern printf
     extern exit
@@ -19,19 +26,18 @@ section .text
 
 main:
     mov rsp,stacks
-    sub rsp,64
-    movq xmm0,[value128]
-    movq rsi,xmm0
-    add rsp,64
-    ; Encerrar (em Linux, syscall exit)
+    
+    mov rax,[value0]
+    mov rbx,[value1]
+    clc
+    imul rbx    
+    mov rsi,rax
     mov rax,0
     mov rdi,stg
-    
     call printf
+
     ; Encerrar (em Linux, syscall exit)
-    mov eax, 60     ; syscall: exit
-    xor edi, edi    ; status 0
-    syscall
+    call exit
     ret
 section .note.GNU-stack
     times 16384 db 0
